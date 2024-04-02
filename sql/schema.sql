@@ -1,8 +1,8 @@
 DROP DATABASE IF EXISTS
 
-CREATE DATABASE hrtable;
+CREATE DATABASE hr_table
 
-USE hrtable;
+USE hr_table;
 
 CREATE TABLE department (
     id INT NOT NULL AUTO_INCREMENT,

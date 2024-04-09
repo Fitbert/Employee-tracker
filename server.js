@@ -20,36 +20,37 @@ connection.connect((err) => {
   setup();
 });
 
-
+const mainProm = [
+  {
+    name: "What do you want to do?",
+    type: "list",
+    message: "What would you like to do?",
+    choices: [
+      "View all Employees",
+      "Add Employee",
+      "Update Employee Role",
+      "View All Roles",
+      "Add Role",
+      "View All Departments",
+      "Add Department",
+      "Delete employee",
+      "Delete role",
+      "Delete Department",
+      "View Budget",
+      "Update employee Manager",
+      "View Employee Manager",
+      "View employee Department",
+      "Quit"
+    ]
+  }
+];
 
 function setup() {
-  inquirer
-    .prompt([
-      {
-        type: 'list',
-        name: 'start',
-        message: 'What would you like to do?',
-        choices: [
-          'View all Employees',
-          'Add Employee',
-          'Update Employee Role',
-          'View All Roles',
-          'Add Role',
-          'View All Departments',
-          'Add Department',
-          'Delete employee',
-          'Delete role',
-          'Delete Department',
-          'View Budget',
-          'Update employee Manager',
-          'View Employee Manager',
-          'View employee Department',
-          'Quit'
-        ]
-      }
-    ])
-    .then((answers) => { // Corrected the parameter name here
-      const { start } = answers; // Destructuring answers to get start directly
+  inquirer.prompt(mainProm)
+  .then(function(answers){
+
+
+    .then(function(answers) { // Corrected the parameter name here
       if (start === "View all Employees") {
         viewEmployees();
       } else if (start === "Add Employee") {
@@ -80,12 +81,10 @@ function setup() {
         viewEmployeeDepartment();
       } else if (start === "Quit") {
         quit();
-      }
-    })
-    .catch((error) => {
-      console.error('Error:', error);
+      };
     });
-}
+  });
+};
 
 
 function viewEmployees() {
@@ -707,5 +706,5 @@ function viewBudget() {
 function quit() {
   connection.end();
   console.log('Disconnected from database.');
-  process.exit(0);
-}
+
+};

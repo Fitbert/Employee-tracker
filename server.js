@@ -1,14 +1,15 @@
 // load dependencies
+require('dotenv').config();
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 
-// creates connection to sql database
+// Create connection to SQL database
 const connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
-    user: 'root',
-    password: '123456',
-    database: 'hr_table'
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 });
 
 // connects to sql server and sql database
@@ -22,8 +23,10 @@ connection.connect(function(err){
 
 });
 
+
 // array of actions to prompt user
 const mainPrompt = [
+ 
     
     {
 
@@ -32,21 +35,17 @@ const mainPrompt = [
         message: "Select an action",
         choices: [
             
-            "View employees",
-            "View roles",
-            "View departments",
+            "View employee",
+            "View role",
+            "View department",
             "Add department",
             "Add role",
             "Add employee",
-            "Edit employee",
-            "Edit employee manager",
-            "View employees by manager",
-            "View employees by department",
-            "Delete roles",
-            "Delete departments",
+            "Update employee role/manager",
             "Remove employee",
-            "View department budget",
-
+            "Delete a department",
+            "View employees by department",
+            "View Department Budget",
             "EXIT"
             
         ]
@@ -55,58 +54,73 @@ const mainPrompt = [
 
 ];
 
+// prompt user with inquirer and execute function corresponding to user selection
 function setup() {
-   
+    console.log("***********************************")
+    console.log("*                                 *")
+    console.log("*        EMPLOYEE MANAGER         *")
+    console.log("*                                 *")
+    console.log("***********************************")   
+    // prompt user actions using inquirer 
     inquirer.prompt(mainPrompt)
     
+    // await user responce from inquirer
     .then(function(answer) {
 
+        // execute functionviewEmploy if user selection is "View employee"
         if(answer.action == "View employee") {
             
-            viewAll();
-        }else if(answer.action == "View departments") {
+           viewEmploy();
+        
+        // execute function viewDept if user selection is "View department"
+        }else if(answer.action == "View department") {
 
-          viewDept();
-        }else if(answer.action == "View roles") {
+            viewDept();
+
+        // execute function viewrole if user selection is "View role"
+        }else if(answer.action == "View role") {
 
             viewRole();
 
-        // execute function addEmployee if user selection is "Add employee"
+        // execute function addNewEmploy if user selection is "Add employee"
         }else if(answer.action == "Add employee") {
 
-            addEmployee();
+            addNewEmploy();
+            
+        // execute function addDept if user selection is "Add department"
         }else if(answer.action == "Add department") {
 
-          addDept();
+            addDept();
+       
+        // execute function addRole if user selection is "Add roles"
         }else if(answer.action == "Add role") {
 
             addRole();
-        }else if(answer.action == "Edit employee") {
+
+
+        // execute function addRole if user selection is "Add roles"
+        }else if(answer.action == "Update employee role/manager") {
 
             updateEmployee();
+
+
+        // execute function addRole if user selection is "Add roles"
         }else if(answer.action == "Remove employee") {
 
             deleteEmployee();
-        }else if(answer.action == "Edit employee manager") {
-          
-            updateManager();
-        }else if(answer.action == "View employees by manager") {
-          
-            viewByManager();
+
+
+        // execute function EXIT if user selection is "EXIT"
+        }else if(answer.action == "Delete a department") {
+            
+            deleteDepartment() 
         }else if(answer.action == "View employees by department") {
-          
-            viewByDept();
-        }else if(answer.action == "View department budget") {
-          
-            viewBudget();
-        }else if(answer.action == "Delete roles") {
-          
-            deleteRole();
-        }else if(answer.action == "Delete departments") {
-          
-            deleteDept();
+            
+            viewEmployeesByDepartment()
+        }else if(answer.action == "View Department Budget"){
+            viewBudgetByDepartment();
         }else if(answer.action == "EXIT") {
-           
+
             exit();
 
         };
@@ -117,7 +131,7 @@ function setup() {
 };
 
 // view all employee in employee_db
-function viewAll() {
+function viewEmploy() {
 
     // SQL command to get employee first_name/ last_name/ manager id, role title/ salary and department name data from employee, role, and department tables
     let query =
@@ -165,13 +179,13 @@ function viewAll() {
 
 };
 
-// view all departments in employee_db
+// view all department in employee_db
 function viewDept() {
 
     // SQL command to get data from department table
-    let query = "SELECT department.dept_name AS departments FROM department;";
+    let query = "SELECT department.dept_name AS department FROM department;";
 
-    // connect to mySQL useing query instruction to access departments table
+    // connect to mySQL useing query instruction to access department table
     connection.query(query, function(err, res) {
         
         // throw error if the is issue accessing data
@@ -210,7 +224,7 @@ function viewRole() {
 };
 
 // add new employee to employee_db
-function addEmployee() {
+function addNewEmploy() {
 
     // SQL command to get data from role table
     let query = "SELECT title FROM role";
@@ -368,7 +382,7 @@ function addEmployee() {
             inquirer.prompt(addEmpPrompt)
 
             // await user responce from inquirer
-            .then(function(answers) {
+            .then(function(answer) {
 
                 // if user selects Exit return to main menu
                 if(answer.select_role == "0: Exit" || answer.select_manager == "E: Exit") {
@@ -441,11 +455,11 @@ function addEmployee() {
                             // throw error if there is issue accessing data
                             if (err) throw err;
 
-                            // execute function addEmployee again if user selection is "Yes"
+                            // execute function addNewEmploy again if user selection is "Yes"
                             if(answer.again == "Yes") {
 
                                 // prompt add new employee to employee_db
-                                addEmployee();
+                                addNewEmploy();
                             
                             // update employee first/ last_name table in terminal, and execute function setup if user selection is "Exit"
                             }else if(answer.again == "Exit") {
@@ -453,7 +467,7 @@ function addEmployee() {
                                 // add manager names to the manager_id col to be displayed in terminal
                                 for(i = 0; i < res.length; i++) {
 
-                                    // if manager_Id contains a "0" then lable it as "None"
+                                    // if manager_Id contains a "0" then label it as "None"
                                     if(res[i].manager_id == 0) {
                                         
                                         res[i].manager = "None" 
@@ -606,7 +620,7 @@ function addRole() {
     // SQL command to get data from role table and data from department.dept_name where department.id = role.department_id
     let query1 = "SELECT role.title AS role, role.salary, department.dept_name FROM role INNER JOIN department ON department.id = role.department_id;";
 
-    // SQL command to get dept_name data from department table - used for prompting list of availible departments to pick from
+    // SQL command to get dept_name data from department table - used for prompting list of availible department to pick from
     let query2 = "SELECT department.dept_name FROM department" ;
 
     // connect to mySQL using query instruction 1 to access data from role & department tables
@@ -655,8 +669,8 @@ function addRole() {
                     // dynamic choises using departmentList (dept_name col of department table)
                     choices: function() {
                         
-                        // init departments array - used to return existing department names as choises array prompted to user 
-                        departments = [];
+                        // init department array - used to return existing department names as choises array prompted to user 
+                        department = [];
                         
                         // loop through departmentList to extract the department names from depatmentList which is an object array containing data from department table in the form of rowPackets
                         for(i = 0; i < departmentList.length; i++) { 
@@ -664,16 +678,16 @@ function addRole() {
                             // looping parameter "i" will allways align with the table index, therefore by adding 1 we have effectivly converted it to match table id's 
                             const roleId = i + 1;
 
-                            // concat roleId and dept_name strings and push the resulting string into our departments (choises) array 
-                            departments.push(roleId + ": " + departmentList[i].dept_name);
+                            // concat roleId and dept_name strings and push the resulting string into our department (choises) array 
+                            department.push(roleId + ": " + departmentList[i].dept_name);
 
                         };
                         
-                        // add string "0: Exit" to the beginning of departments (choises)
-                        departments.unshift("0: Exit");
+                        // add string "0: Exit" to the beginning of department (choises)
+                        department.unshift("0: Exit");
 
-                        // return departments (choises) array to be rendered by inquirer to the user 
-                        return departments;
+                        // return department (choises) array to be rendered by inquirer to the user 
+                        return department;
 
                     }
 
@@ -706,7 +720,7 @@ function addRole() {
                         title: answer.add_role,
                         salary: answer.add_salary,
                         
-                        // department_id is extracted by parsing roleId from the selected departments array string and converting it to int
+                        // department_id is extracted by parsing roleId from the selected department array string and converting it to int
                         department_id: parseInt(answer.select_department.split(":")[0])
 
                     }, function(err, res){
@@ -1102,6 +1116,7 @@ function updateEmployee() {
     
 };
 
+// delete existing employee in employee_db
 function deleteEmployee() {
 
     // SQL command to get data from role table
@@ -1297,101 +1312,116 @@ function deleteEmployee() {
     
 };
 
-// function updateManager() 
+function deleteDepartment() {
+    // Retrieve all departments from the database
+    let query = "SELECT * FROM department";
 
-// function viewByManager()
+    connection.query(query, function(err, departments) {
+        if (err) throw err;
 
-// function viewByDept()
-
-function viewBudget() {
-    console.log('Showing budget by department...\n');
-  
-    const sql = `SELECT department_id AS id, 
-                        department.dept_name AS department,
-                        SUM(salary) AS budget
-                 FROM  role  
-                 JOIN department ON role.department_id = department.id GROUP BY  department_id`;
-  
-    return new Promise((resolve, reject) => {
-      connection.query(sql, (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          console.table(rows);
-          resolve();
-        }
-        setup();
-      });
-    });
-  }
-  
-function deleteRole() {
- 
-    const roleSql = `SELECT * FROM role`; 
-  
-    connection.promise().query(roleSql, (err, data) => {
-      if (err) throw err; 
-  
-      const role = data.map(({ title, id }) => ({ name: title, value: id }));
-  
-      inquirer.prompt([
-        {
-          type: 'list', 
-          name: 'role',
-          message: "What role do you want to delete?",
-          choices: role
-        }
-      ])
-        .then(roleChoice => {
-          const role = roleChoice.role;
-          const sql = `DELETE FROM role WHERE id = ?`;
-  
-          connection.query(sql, role, (err, result) => {
-            if (err) throw err;
-            console.log("Successfully deleted!"); 
-  
-            showRole();
+        // Prompt the user to select a department to delete
+        inquirer.prompt({
+            name: "departmentToDelete",
+            type: "list",
+            message: "Select a department to delete:",
+            choices: departments.map(department => department.dept_name)
+        }).then(function(answer) {
+            // Confirm deletion
+            inquirer.prompt({
+                name: "confirmation",
+                type: "confirm",
+                message: `Are you sure you want to delete the department "${answer.departmentToDelete}"?`
+            }).then(function(confirmAnswer) {
+                if (confirmAnswer.confirmation) {
+                    // Perform deletion if confirmed
+                    let deleteQuery = "DELETE FROM department WHERE dept_name = ?";
+                    connection.query(deleteQuery, [answer.departmentToDelete], function(err, res) {
+                        if (err) throw err;
+                        console.log(`Department "${answer.departmentToDelete}" has been deleted.`);
+                        // Prompt user for next action
+                        setup();
+                    });
+                } else {
+                    console.log("Deletion canceled.");
+                    // Prompt user for next action
+                    setup();
+                }
+            });
         });
-      });
     });
-  };
+}
 
+function viewEmployeesByDepartment() {
+    // Retrieve all departments from the database
+    let query = "SELECT * FROM department";
 
-function deleteDept() {
-    const deptSql = `SELECT * FROM department`; 
-  
-    connection.promise().query(deptSql, (err, data) => {
-      if (err) throw err; 
-  
-      const dept = data.map(({ name, id }) => ({ name: name, value: id }));
-  
-      inquirer.prompt([
-        {
-          type: 'list', 
-          name: 'dept',
-          message: "What department do you want to delete?",
-          choices: dept
-        }
-      ])
-        .then(deptChoice => {
-          const dept = deptChoice.dept;
-          const sql = `DELETE FROM department WHERE id = ?`;
-  
-          connection.query(sql, dept, (err, result) => {
-            if (err) throw err;
-            console.log("Successfully deleted!"); 
-  
-          showDept();
+    connection.query(query, function(err, departments) {
+        if (err) throw err;
+
+        // Prompt the user to select a department to view employees
+        inquirer.prompt({
+            name: "departmentToView",
+            type: "list",
+            message: "Select a department to view employees:",
+            choices: departments.map(department => department.dept_name)
+        }).then(function(answer) {
+            // Retrieve employees in the selected department
+            let employeeQuery = "SELECT employee.*, role.title AS role_title " +
+                                "FROM employee " +
+                                "INNER JOIN role ON employee.role_id = role.id " +
+                                "WHERE role.department_id = (SELECT id FROM department WHERE dept_name = ? LIMIT 1)";
+            connection.query(employeeQuery, [answer.departmentToView], function(err, employees) {
+                if (err) throw err;
+
+                // Display the list of employees
+                console.table(employees);
+
+                // Prompt user for next action
+                setup();
+            });
         });
-      });
     });
-  };
-  
+}
 
+
+
+function viewBudgetByDepartment() {
+
+    // Prompt user to enter department name
+    inquirer.prompt({
+        name: "department_name",
+        type: "input",
+        message: "Enter the department name to view salaries:"
+    }).then(function(answer) {
+
+        // SQL command to get total salaries in the specified department
+        let query = "SELECT SUM(salary) AS total_salary FROM role " +
+                    "WHERE department_id IN (SELECT id FROM department WHERE dept_name = ?)";
+
+        // connect to mySQL using query instruction to access data from role table
+        connection.query(query, [answer.department_name], function(err, res){
+
+            // throw error if there is issue accessing data
+            if (err) throw err;
+
+            // print data retrieved to terminal in table format 
+            console.table(res);
+
+            // Prompt user for next action
+            setup();
+
+        });
+
+    });
+
+}
+// exit employee-traker 
 function exit() {
 
+    // terminate mySQL connection
     connection.end();
 
-    console.log("Good Bye!");
+    // say good bye
+    console.log("Thank you bye!");
 
 };
